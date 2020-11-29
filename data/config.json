@@ -1,0 +1,19 @@
+{
+    "------THIS SECTION IS MANDATORY-------": "",
+    "prefix": "$",
+    "token": "put_your_token_here",
+    "------BELOW IS OPTIONAL-------": "",
+    "online_status": "dnd",
+    "playing_status": "$help",
+    "muted_role": "Muted",
+    "on_join_role": "Member",
+    "welcome_message": "<member> has joined the server.",
+    "welcome_channel_id": null,
+    "logging_channel_id": null,
+    "suggestions_channel_id": null,
+    "giveaways_channel_id": null,
+    "------DONT FILL IN BELOW THIS-------": "",
+    "ticket_setup_id": null,
+    "filtered_words": [
+        ]
+}
