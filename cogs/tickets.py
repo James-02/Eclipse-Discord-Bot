@@ -12,6 +12,24 @@ from discord.utils import get
 CONFIG_FILE = "data/config.json"
 TICKET_FILE = "data/tickets.db"
 
+def get_channel_id():
+    """ Function to fetch the channel_id column from the tickets table. """
+    conn = sqlite3.connect(TICKET_FILE)
+    cursor = conn.cursor()
+    select = """ SELECT channel_id FROM tickets; """
+
+    try:
+        cursor.execute(select)
+
+    except sqlite3.OperationalError:
+        print("Database or table not found.")
+
+    data = cursor.fetchall()
+    conn.commit()
+
+    tuples = list(zip(*data))
+    channel_ids = [] if tuples == [] else tuples[0]
+    return channel_ids
 
 class Tickets(commands.Cog):
     """ Main Ticket class to setup attributes and methods to be called on each event """
@@ -31,22 +49,18 @@ class Tickets(commands.Cog):
     async def ticket(self, ctx):
         """ Creates a ticket channel in the ticket category and mentions the user (MAKE SURE THERE IS A TICKET CATEGORY) """
         timestamp = ctx.message.created_at.strftime(self.time_format)
+        conn = sqlite3.connect(TICKET_FILE)
+        cursor = conn.cursor()
+        select = """ SELECT ticket_id, user_id FROM tickets; """
+
         try:
-            conn = sqlite3.connect(TICKET_FILE)
-            cursor = conn.cursor()
-            select = """ SELECT ticket_id, user_id FROM tickets; """
             cursor.execute(select)
-            data = cursor.fetchall()
-            conn.commit()
 
-        except FileNotFoundError as error:
-            print(error)
-            conn.close()
+        except sqlite3.OperationalError:
+            print("Database or table not found.")
 
-        except IOError as error:
-            print(error)
-            conn.close()
-
+        data = cursor.fetchall()
+        conn.commit()
         tuples = list(zip(*data))
         tickets = [] if tuples == [] else tuples[0]
         user_ids = [] if tuples == [] else tuples[1]
@@ -108,44 +122,18 @@ class Tickets(commands.Cog):
             await ctx.send(embed=embed)
 
         else:
-            try:
-                conn = sqlite3.connect(TICKET_FILE)
-                cursor = conn.cursor()
-                select = """ SELECT channel_id FROM tickets; """
-                cursor.execute(select)
-                data = cursor.fetchall()
-                conn.commit()
-                conn.close()
-
-            except FileNotFoundError as error:
-                print(error)
-                conn.close()
-
-            except IOError as error:
-                print(error)
-                conn.close()
-
-            tuples = list(zip(*data))
-            channel_ids = [] if tuples == [] else tuples[0]
+            channel_ids = get_channel_id()
 
             if ctx.channel.id in channel_ids:
-                try:
-                    channel = self.bot.get_channel(ctx.channel.id)
-                    overwrite = discord.PermissionOverwrite()
-                    overwrite.update(read_messages=True, read_message_history=True, send_messages=True)
-                    await channel.set_permissions(user, overwrite=overwrite)
+                channel = self.bot.get_channel(ctx.channel.id)
+                overwrite = discord.PermissionOverwrite()
+                overwrite.update(read_messages=True, read_message_history=True, send_messages=True)
+                await channel.set_permissions(user, overwrite=overwrite)
 
-                    embed = discord.Embed(title="__Success__", description=f"Added {user.mention} to ticket.",
-                                          color=self.colors.get("green"))
-                    embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-                    await ctx.send(embed=embed)
-
-                except:
-                    embed = discord.Embed(title="__Error__",
-                                          description=f"Failed to add {user.mention} to the ticket, they may already be added.",
-                                          color=self.colors.get("red"))
-                    embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-                    await ctx.send(embed=embed)
+                embed = discord.Embed(title="__Success__", description=f"Added {user.mention} to ticket.",
+                                        color=self.colors.get("green"))
+                embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+                await ctx.send(embed=embed)
 
             else:
                 embed = discord.Embed(title="__Error__", description="This channel is not a ticket.",
@@ -166,44 +154,18 @@ class Tickets(commands.Cog):
             await ctx.send(embed=embed)
 
         else:
-            try:
-                conn = sqlite3.connect(TICKET_FILE)
-                cursor = conn.cursor()
-                select = """ SELECT channel_id FROM tickets; """
-                cursor.execute(select)
-                data = cursor.fetchall()
-                conn.commit()
-                conn.close()
-
-            except FileNotFoundError as error:
-                print(error)
-                conn.close()
-
-            except IOError as error:
-                print(error)
-                conn.close()
-
-            tuples = list(zip(*data))
-            channel_ids = [] if tuples == [] else tuples[0]
+            channel_ids = get_channel_id()
 
             if ctx.channel.id in channel_ids:
-                try:
-                    channel = self.bot.get_channel(ctx.channel.id)
-                    overwrite = discord.PermissionOverwrite()
-                    overwrite.update(read_messages=False, read_message_history=False, send_messages=False)
-                    await channel.set_permissions(user, overwrite=overwrite)
+                channel = self.bot.get_channel(ctx.channel.id)
+                overwrite = discord.PermissionOverwrite()
+                overwrite.update(read_messages=False, read_message_history=False, send_messages=False)
+                await channel.set_permissions(user, overwrite=overwrite)
 
-                    embed = discord.Embed(title="__Success__", description=f"Removed {user.mention} from the ticket.",
-                                          color=self.colors.get("green"))
-                    embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-                    await ctx.send(embed=embed)
-
-                except:
-                    embed = discord.Embed(title="__Error__",
-                                          description=f"Failed to remove {user.mention} to the ticket, they may not be added.",
-                                          color=self.colors.get("red"))
-                    embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-                    await ctx.send(embed=embed)
+                embed = discord.Embed(title="__Success__", description=f"Removed {user.mention} from the ticket.",
+                                        color=self.colors.get("green"))
+                embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+                await ctx.send(embed=embed)
 
             else:
                 embed = discord.Embed(title="__Error__", description="This channel is not a ticket.",
@@ -217,25 +179,23 @@ class Tickets(commands.Cog):
     async def close(self, ctx, *, message=None):
         """ Ticket command to close the ticket, requires manage channel permissions """
         timestamp = ctx.message.created_at.strftime(self.time_format)
+        conn = sqlite3.connect(TICKET_FILE)
+        cursor = conn.cursor()
+        select = """ SELECT user_id, channel_id FROM tickets; """
+
         try:
-            conn = sqlite3.connect(TICKET_FILE)
-            cursor = conn.cursor()
-            select = """ SELECT user_id, channel_id FROM tickets; """
             cursor.execute(select)
-            data = cursor.fetchall()
-            conn.commit()
 
-        except FileNotFoundError as error:
-            print(error)
-            conn.close()
+        except sqlite3.OperationalError:
+            print("Database or table not found.")
 
-        except IOError as error:
-            print(error)
-            conn.close()
+        data = cursor.fetchall()
+        conn.commit()
 
         tuples = list(zip(*data))
         channel_ids = [] if tuples == [] else tuples[1]
         user_ids = [] if tuples == [] else tuples[0]
+        user_id = None
 
         for channel_id in channel_ids:
             if ctx.channel.id == channel_id:
@@ -337,25 +297,7 @@ class Tickets(commands.Cog):
             await ctx.send(embed=embed)
 
         else:
-            try:
-                conn = sqlite3.connect(TICKET_FILE)
-                cursor = conn.cursor()
-                select = """ SELECT channel_id FROM tickets; """
-                cursor.execute(select)
-                data = cursor.fetchall()
-                conn.commit()
-                conn.close()
-
-            except FileNotFoundError as error:
-                print(error)
-                conn.close()
-
-            except IOError as error:
-                print(error)
-                conn.close()
-
-            tuples = list(zip(*data))
-            channel_ids = [] if tuples == [] else tuples[0]
+            channel_ids = get_channel_id()
 
             if ctx.channel.id in channel_ids:
                 await channel.edit(name=name)
@@ -393,25 +335,7 @@ class Tickets(commands.Cog):
             await ctx.send(embed=embed)
 
         elif arg in ("add", "remove"):
-            try:
-                conn = sqlite3.connect(TICKET_FILE)
-                cursor = conn.cursor()
-                select = """ SELECT channel_id FROM tickets; """
-                cursor.execute(select)
-                data = cursor.fetchall()
-                conn.commit()
-                conn.close()
-
-            except FileNotFoundError as error:
-                print(error)
-                conn.close()
-
-            except IOError as error:
-                print(error)
-                conn.close()
-
-            tuples = list(zip(*data))
-            channel_ids = [] if tuples == [] else tuples[0]
+            channel_ids = get_channel_id()
 
             if ctx.channel.id in channel_ids:
                 if arg == "add":
@@ -447,25 +371,7 @@ class Tickets(commands.Cog):
         """ Ticket command to upgrade a ticket so only admins can view, requires manage channels permissions """
         timestamp = ctx.message.created_at.strftime(self.time_format)
         channel = self.bot.get_channel(ctx.channel.id)
-        try:
-            conn = sqlite3.connect(TICKET_FILE)
-            cursor = conn.cursor()
-            select = """ SELECT channel_id FROM tickets; """
-            cursor.execute(select)
-            data = cursor.fetchall()
-            conn.commit()
-            conn.close()
-
-        except FileNotFoundError as error:
-            print(error)
-            conn.close()
-
-        except IOError as error:
-            print(error)
-            conn.close()
-
-        tuples = list(zip(*data))
-        channel_ids = [] if tuples == [] else tuples[0]
+        channel_ids = get_channel_id()
 
         if ctx.channel.id in channel_ids:
             for role in ctx.guild.roles:

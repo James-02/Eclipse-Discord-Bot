@@ -54,6 +54,7 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         """ Event method called when a reaction is added to any message, checks all data to see if it needs to be used """
+        index = None
         if payload.user_id != self.bot.user.id:
             config = get_config()
             ticket_setup_id = config["ticket_setup_id"]
@@ -65,17 +66,18 @@ class Events(commands.Cog):
                 message = await channel.fetch_message(payload.message_id)
                 await message.remove_reaction(str(payload.emoji), user)
 
-                try:
-                    conn = sqlite3.connect(TICKET_FILE)
-                    cursor = conn.cursor()
-                    select = """ SELECT ticket_id, user_id FROM tickets; """
-                    cursor.execute(select)
-                    data = cursor.fetchall()
-                    conn.commit()
+                conn = sqlite3.connect(TICKET_FILE)
+                cursor = conn.cursor()
+                select = """ SELECT ticket_id, user_id FROM tickets; """
 
-                except FileNotFoundError as error:
-                    print(error)
-                    conn.close()
+                try:
+                    cursor.execute(select)
+
+                except sqlite3.OperationalError:
+                    print("Database or table not found.")
+
+                data = cursor.fetchall()
+                conn.commit()
 
                 tuples = list(zip(*data))
                 tickets = [] if tuples == [] else tuples[0]
@@ -168,6 +170,7 @@ class Events(commands.Cog):
         reactions = get_reaction_roles()
         guild = find(lambda g: g.id == payload.guild_id, self.bot.guilds)
         member = guild.get_member(payload.user_id)
+        index = None
         for message in reactions:
             if payload.message_id == message.get("message_id") and payload.user_id != self.bot.user.id:
                 roles = message.get("reaction_roles")
@@ -218,8 +221,12 @@ class Events(commands.Cog):
             if message.content.startswith(config["prefix"]):
                 timestamp = message.created_at.strftime(self.time_format)
                 cmds = get_cmds()
-                msg = message.content.replace(f"{config['prefix']}", "") if config[
-                                                                                'prefix'] in message.content else message.content
+                if config['prefix'] in message.content:
+                    msg = message.content.replace(f"{config['prefix']}", "")
+                
+                else:
+                    msg = message.content
+
                 msg = (msg.lower().split(" "))[0]
                 bot_commands = []
                 for cog in self.bot.cogs.keys():
@@ -244,17 +251,18 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_channel_delete(self, channel):
         """ Cleanup method called when a channel is deleted to check if it is a ticket and remove any ticket data """
-        try:
-            conn = sqlite3.connect(TICKET_FILE)
-            cursor = conn.cursor()
-            select = """ SELECT channel_id FROM tickets; """
-            cursor.execute(select)
-            data = cursor.fetchall()
-            conn.commit()
+        conn = sqlite3.connect(TICKET_FILE)
+        cursor = conn.cursor()
+        select = """ SELECT channel_id FROM tickets; """
 
-        except FileNotFoundError as error:
-            print(error)
-            conn.close()
+        try:
+            cursor.execute(select)
+
+        except sqlite3.OperationalError:
+            print("Database or table not found.")
+
+        data = cursor.fetchall()
+        conn.commit()
 
         tuples = list(zip(*data))
         channel_ids = [] if tuples == [] else tuples[0]

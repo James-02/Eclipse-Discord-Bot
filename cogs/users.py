@@ -274,15 +274,15 @@ class Users(commands.Cog):
                             async with aiohttp.ClientSession() as session:
                                 async with session.get(f"https://crafatar.com/renders/body/{uuid}") as c:
                                     response = await c.read()
-                                    with open("skin.png", "wb") as f:
-                                        f.write(response)
+                                    with open("skin.png", "wb") as i:
+                                        i.write(response)
 
                                     if c.status == 200:
                                         directory = os.getcwd()
-                                        embed = discord.Embed(title=f"**__Name History__**",
+                                        embed = discord.Embed(title="**__Name History__**",
                                                               description=f"{final_string}",
                                                               color=self.colors.get("pink"))
-                                        file = discord.File(f"{directory}\skin.png", filename="skin.png")
+                                        file = discord.File(fr"{directory}\skin.png", filename="skin.png")
                                         embed.set_thumbnail(url="attachment://skin.png")
                                         embed.set_footer(text=f"{self.bot.user.name} | {timestamp}",
                                                          icon_url=self.bot.user.avatar_url)
@@ -331,7 +331,7 @@ class Users(commands.Cog):
                                     if c.status == 200:
                                         directory = os.getcwd()
                                         embed = discord.Embed(title=f"Player: {name}", color=self.colors.get("pink"))
-                                        file = discord.File(f"{directory}\skin.png", filename="skin.png")
+                                        file = discord.File(fr"{directory}\skin.png", filename="skin.png")
                                         embed.set_image(url="attachment://skin.png")
                                         await ctx.send(file=file, embed=embed)
 

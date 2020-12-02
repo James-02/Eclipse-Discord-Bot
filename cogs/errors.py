@@ -16,6 +16,7 @@ class Errors(commands.Cog):
         self.colors = {"red": 0xff5959, "green": 0x00ff40, "pink": 0xff00ff}
         print(f"{self.__class__.__name__} cog loaded.")
 
+
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         """ Event to catch any errors that are caused when a command is called """
@@ -48,22 +49,27 @@ class Errors(commands.Cog):
             await ctx.send(embed=embed)
 
         elif isinstance(error, commands.errors.MissingRequiredArgument):
-            embed = discord.Embed(title="**__Error__**", description=f"**{error}**", color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+            embed = Errors.send_error(self, ctx, error)
             await ctx.send(embed=embed)
 
         elif isinstance(error, commands.errors.BadArgument):
-            embed = discord.Embed(title="**__Error__**", description=f"**{error}**", color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+            embed = send_error(self, ctx, error)
             await ctx.send(embed=embed)
 
-        elif isinstance(error, commands.errors.NoPrivateMessage):
-            embed = discord.Embed(title="**__Error__**", description=f"**{error}**", color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+        elif isinstance(error, commands.errors):
+            embed = Errors.send_error(self, ctx, error)
             await ctx.send(embed=embed)
 
         else:
             raise error
+
+
+def send_error(self, ctx, error):
+    """ Function to return the error message based on the instance of error. """
+    timestamp = ctx.message.created_at.strftime(self.time_format)
+    embed = discord.Embed(title="**__Error__**", description=f"**{error}**", color=self.colors.get("red"))
+    embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+    return embed
 
 
 def get_config():

@@ -155,6 +155,7 @@ class Moderation(commands.Cog):
         timestamp = ctx.message.created_at.strftime(self.time_format)
         banned_users = await ctx.guild.bans()
         member_name, member_discriminator = member.split('#')
+        user = None
         for ban_entry in banned_users:
             user = ban_entry.user
 
@@ -331,6 +332,7 @@ class Moderation(commands.Cog):
         """ Reactionroles command to create an embed with reactions that saves the data to a config for the events to add roles on reactions """
         reaction_roles = get_reaction_roles()
         timestamp = ctx.message.created_at.strftime(self.time_format)
+        role_to_check = None
         try:
             roles = roles.split("/")
             emojis = emojis.split("/")
