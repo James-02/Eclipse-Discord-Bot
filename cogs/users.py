@@ -1,4 +1,4 @@
-""" User Commands file to seperate all the commands that do not require any permissions to call """
+""" User Commands file to separate all the commands that do not require any permissions to call """
 import json
 import os
 from datetime import datetime
@@ -25,63 +25,52 @@ class Users(commands.Cog):
     @commands.guild_only()
     async def ping(self, ctx):
         """ Returns the latency of the bot """
-        timestamp = ctx.message.created_at.strftime(self.time_format)
         ping = round(self.bot.latency * 1000)
-        embed = discord.Embed(title="**__Ping__**", description=(f'The bot has {ping}ms ping'),
-                              color=self.colors.get("green"))
-        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-        await ctx.send(embed=embed)
+        title = "**__Ping__**"
+        description = f"The bot has {ping}ms ping"
+        await ctx.send(embed=return_embed(self, ctx, title, description, color="green"))
 
     @commands.command(help="<@user>", description="Retrives discord information on the user.")
     @commands.guild_only()
     async def userinfo(self, ctx, member: discord.Member = None):
         """ Displays User Info e.g: .userinfo @Pat """
         member = ctx.message.author if member is None else member
-        timestamp = ctx.message.created_at.strftime(self.time_format)
+        title = "**__Discord User Info__**"
+        description = f"User Info for - {member.mention}"
+        roles = ', '.join([role.name for role in ctx.guild.roles]).replace('@everyone', 'everyone')
 
-        embed = discord.Embed(title="**__Discord User Info__**", description=f"User Info for - {member.mention}",
-                              color=self.colors.get("pink"))
-        embed.set_thumbnail(url=member.avatar_url)
+        embed = return_embed(self, ctx, title, description, color="pink", thumbnail=member.avatar_url)
         embed.add_field(name="Server Name", value=member.display_name, inline=False)
         embed.add_field(name="Status", value=member.status, inline=False)
         embed.add_field(name="Created On", value=member.created_at.strftime("%#d %B %Y"), inline=False)
         embed.add_field(name="Joined On", value=member.joined_at.strftime("%#d %B %Y"), inline=False)
-        embed.add_field(name=f"Roles: {len(ctx.guild.roles)}",
-                        value=', '.join([role.name for role in ctx.guild.roles]).replace('@everyone', 'everyone'),
-                        inline=False)
-        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+        embed.add_field(name=f"Roles: {len(ctx.guild.roles)}", value=roles, inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(help="", description="Retrieves information about the discord server.")
     @commands.guild_only()
     async def info(self, ctx):
-        """ Displays bot and guild info e.g .botinfo """
-        timestamp = ctx.message.created_at.strftime(self.time_format)
+        """ Displays bot and guild info e.g .info """
         config = get_config()
         members = set(ctx.guild.members)
-        desc = ""
-        desc += f"**Bot Prefix :** {config['prefix']}\n"
-        desc += f"**Member Count :** {str(len(members))}\n"
-        desc += f"**Server Owner :** {ctx.guild.owner.mention}\n"
-        desc += f"**Roles :** {len(ctx.guild.roles)}\n"
-        desc += f"**Region :** {ctx.guild.region}\n"
-        desc += f"**Creation Date :** {ctx.guild.created_at.strftime('%#d/%B/%Y')}\n"
-        desc += f"**Nitro Boosts :** {ctx.guild.premium_subscription_count}\n"
-        desc += f"**Nitro Boosters :** {str(len(ctx.guild.premium_subscribers))}\n"
-        desc += f"**Premium Tier :** {ctx.guild.premium_tier}\n"
-
-        embed = discord.Embed(title=f"__{ctx.message.guild.name}__", description=f"{desc}\n`Bot made by Jam#0191`",
-                              color=self.colors.get("pink"))
-        embed.set_thumbnail(url=f"{ctx.message.guild.icon_url}")
-        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+        embed = return_embed(self, ctx, title=ctx.guild.name, color="pink", thumbnail=ctx.guild.icon_url)
+        embed.add_field(name="**Bot Prefix :**", value=config['prefix'], inline=False)
+        embed.add_field(name="**Member Count :**", value=str(len(members)), inline=False)
+        embed.add_field(name="**Server Owner :**", value=ctx.guild.owner.mention, inline=False)
+        embed.add_field(name="**Roles :**", value=str(len(ctx.guild.roles)), inline=False)
+        embed.add_field(name="**Region :**", value=ctx.guild.region, inline=False)
+        embed.add_field(name="**Creation Date :**", value=ctx.guild.created_at.strftime('%#d/%B/%Y'), inline=False)
+        embed.add_field(name="**Nitro Boosts :**", value=ctx.guild.premium_subscription_count, inline=False)
+        embed.add_field(name="**Nitro Boosters :**", value=str(len(ctx.guild.premium_subscribers)), inline=False)
+        embed.add_field(name="**Premium Tier :**", value=ctx.guild.premium_tier, inline=False)
+        embed.add_field(name="**Bot Developer :**", value="Jam#0191", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(help="<@user> (Leave empty to view the leaderboard.)",
-                      description="Retrieves the active invites in the server for a user or all users if none specified.")
+                      description="Retrieves the active invites in the server for a user or all users if none given.")
     @commands.guild_only()
     async def invites(self, ctx, member: discord.Member = None):
         """ Sends the leaderboard of current invites, send a user as a argument to fetch their personal invites """
-        timestamp = ctx.message.created_at.strftime(self.time_format)
         invites = {}
         invite = await ctx.message.guild.invites()
         for i in invite:
@@ -98,29 +87,21 @@ class Users(commands.Cog):
                 count += 1
                 if value == 1:
                     list_1.append(f"**{count}. {key}** has {value} invite.\n")
-
                 else:
                     list_1.append(f"**{count}. {key}** has {value} invites.\n")
 
-            embed = discord.Embed(title="**__Invite Leaderboard__**", description="".join(list_1),
-                                  color=self.colors.get("green"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            title = "**__Invite Leaderboard__**"
+            await ctx.send(embed=return_embed(self, ctx, title, description="".join(list_1), color="green"))
 
         else:
             invs = invites.get(f"{member}")
             if invs is None:
                 desc = f"**{member.mention}** has 0 invites."
-
             elif invs == 1:
                 desc = f"**{member.mention}** has {invs} invite."
-
             else:
                 desc = f"**{member.mention}** has {invs} invites."
-
-            embed = discord.Embed(title="**__Invites__**", description=desc, color=self.colors.get("green"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            await ctx.send(embed=return_embed(self, ctx, title="**__Invites__**", description=desc, color="green"))
 
     @commands.command(help="<suggestion>",
                       description="Sends a suggestion into the suggestions channel and adds reactions.",
@@ -129,36 +110,23 @@ class Users(commands.Cog):
     async def suggest(self, ctx, *, suggestion=None):
         """ Sends the message given to the suggestions channel and adds reactions """
         config = get_config()
-        timestamp = ctx.message.created_at.strftime(self.time_format)
         channel_id = config["suggestions_channel_id"]
         if channel_id is None:
-            embed = discord.Embed(title="__Error__",
-                                  description="Please enter your 'suggestions' channel ID in the config file.",
-                                  color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            error = "Please enter your 'suggestions' channel ID in the config file."
+            await ctx.send(embed=return_error(self, ctx, error))
 
-        if suggestion is None:
-            embed = discord.Embed(title="__Error__", description="Please provide a suggestion.",
-                                  color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+        elif suggestion is None:
+            error = "Please provide a suggestion."
+            await ctx.send(embed=return_error(self, ctx, error))
 
         else:
             channel = self.bot.get_channel(channel_id)
-
-            embed = discord.Embed(title="**__Suggestion Added__**",
-                                  description=f"{ctx.author.mention} added a suggestion in {channel.mention}",
-                                  color=self.colors.get("green"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
-
-            embed = discord.Embed(
-                description=f"**Suggested By:**\n{ctx.author.mention}\n\n**Suggestion:**\n{suggestion}",
-                color=self.colors.get("green"))
-            embed.set_thumbnail(url=ctx.author.avatar_url)
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            message = await channel.send(embed=embed)
+            title = "__Suggestion Added__"
+            description = f"{ctx.author.mention} added a suggestion in {channel.mention}"
+            await ctx.send(embed=return_embed(self, ctx, title, description, color="green"))
+            description = f"**Suggested By:**\n{ctx.author.mention}\n\n**Suggestion:**\n{suggestion}"
+            message = await channel.send(embed=return_embed(self, ctx, description=description, color="green",
+                                                            thumbnail=ctx.author.avatar_url))
             await message.add_reaction("✅")
             await message.add_reaction("❌")
 
@@ -167,67 +135,61 @@ class Users(commands.Cog):
     async def av(self, ctx, member: discord.Member = None):
         """ Retrieves the user's discord avatar """
         image = ctx.message.author.avatar_url if member is None else member.avatar_url
-        embed = discord.Embed(color=self.colors.get("pink"))
-        embed.set_image(url=image)
-        await ctx.send(embed=embed)
+        await ctx.send(embed=return_embed(self, ctx, image=image, color="pink"))
 
     @commands.command(help="", description="Retrieves all the roles in the discord server.")
     @commands.guild_only()
     async def roles(self, ctx):
         """ Retrieves all the roles in the guild """
-        timestamp = ctx.message.created_at.strftime(self.time_format)
-        roles = sorted(ctx.message.guild.roles, key=lambda role: role.name)
+        roles = sorted(ctx.message.guild.roles, key=lambda role_1: role_1.name)
         role_string = ""
         for role in roles:
             role_string += f"{role.mention}\n" if role.name != "@everyone" else f'{role.name}\n'
 
-        embed = discord.Embed(title="__Roles in this server__", description=role_string, color=self.colors.get("green"))
-        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-        await ctx.send(embed=embed)
+        title = "__Roles in this server__"
+        await ctx.send(embed=return_embed(self, ctx, title, description=role_string, color="green"))
 
     @commands.command(help="<@user>",
                       description="Retrieves previous 90 days of punishment history for the user from the audit logs.")
     @commands.guild_only()
     async def history(self, ctx, member: discord.Member = None):
         """ Returns the kick, ban and unban logs for a user within the last 90 days """
-        timestamp = ctx.message.created_at.strftime(self.time_format)
         if member is None:
-            embed = discord.Embed(title="__Error__", description="No user given.", color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
-
+            error = "No user given"
+            await ctx.send(embed=return_error(self, ctx, error))
         else:
             time_format = "%d/%B/%Y"
             ban_history, kick_history, unban_history = "", "", ""
 
             async for entry in ctx.guild.audit_logs(limit=None, action=discord.AuditLogAction.ban):
                 if entry.target == member:
-                    ban_history += f"*{entry.created_at.strftime(time_format)}* - {entry.user.mention} *banned* {entry.target.mention} for reason: *{entry.reason}*\n"
+                    ban_history += f"*{entry.created_at.strftime(time_format)}* - {entry.user.mention} "
+                    ban_history += f"*banned* {entry.target.mention} for reason: *{entry.reason}*\n"
 
             async for entry in ctx.guild.audit_logs(limit=None, action=discord.AuditLogAction.kick):
                 if entry.target == member:
-                    kick_history += f"*{entry.created_at.strftime(time_format)}* - {entry.user.mention} *kicked* {entry.target.mention} for reason: *{entry.reason}*\n"
+                    kick_history += f"*{entry.created_at.strftime(time_format)}* - {entry.user.mention} "
+                    kick_history += f"*kicked* {entry.target.mention} for reason: *{entry.reason}*\n"
 
             async for entry in ctx.guild.audit_logs(limit=None, action=discord.AuditLogAction.unban):
                 if entry.target == member:
-                    unban_history += f"{entry.created_at.strftime(time_format)} - {entry.user.mention} *unbanned* {entry.target.mention} for reason: *{entry.reason}*\n"
+                    unban_history += f"{entry.created_at.strftime(time_format)} - {entry.user.mention} "
+                    unban_history += f"*unbanned* {entry.target.mention} for reason: *{entry.reason}*\n"
 
             ban_history = "None" if ban_history == "" else ban_history
             kick_history = "None" if kick_history == "" else kick_history
             unban_history = "None" if unban_history == "" else unban_history
 
-            embed = discord.Embed(title=f"**Punishment History in the last 90 days for:** *{member}*",
-                                  description=f"**__Ban History:__**\n{ban_history}\n\n**__Unban History:__**\n{unban_history}\n\n**__Kick History:__**\n{kick_history}",
-                                  color=self.colors.get("pink"))
+            description = f"**__Ban History:__**\n{ban_history}\n\n**__Unban History:__**\n{unban_history}\n\n"
+            description += f"**__Kick History:__**\n{kick_history}"
 
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            title = f"**Punishment History in the last 90 days for:** *{member}*"
+            await ctx.send(embed=return_embed(self, ctx, title, description, color="pink"))
 
     @commands.command(help="", description="Shows all the custom commands", aliases=["customcommands", "commands"])
     @commands.guild_only()
     async def customcmds(self, ctx):
         """ Returns the list of custom commands for this bot """
-        timestamp = ctx.message.created_at.strftime(self.time_format)
         bot_commands = []
         data = get_cmds()
         cmds = data["commands"]
@@ -235,19 +197,16 @@ class Users(commands.Cog):
         for key in keys:
             bot_commands.append(key)
 
-        embed = discord.Embed(title="__Custom Commands__", description=f"{', '.join(bot_commands)}",
-                              color=self.colors.get("green"))
-        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-        await ctx.send(embed=embed)
+        title = "__Custom Commands__"
+        description = f"{', '.join(bot_commands)}"
+        await ctx.send(embed=return_embed(self, ctx, title, description, color="green"))
 
     @commands.command(help="<username>", description="Lookup a minecraft user's name history and skin.")
     async def namemc(self, ctx, name=None):
         final_string = ""
-        timestamp = ctx.message.created_at.strftime(self.time_format)
         if name is None:
-            embed = discord.Embed(title="__Error__", description="No username given.", color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            error = "No username given"
+            await ctx.send(embed=return_error(self, ctx, error))
 
         else:
             try:
@@ -257,8 +216,8 @@ class Users(commands.Cog):
                         if c.status == 200:
                             uuid = response['id']
 
-                            async with aiohttp.ClientSession() as session:
-                                async with session.get(f"https://api.mojang.com/user/profiles/{uuid}/names") as i:
+                            async with aiohttp.ClientSession() as session_2:
+                                async with session_2.get(f"https://api.mojang.com/user/profiles/{uuid}/names") as i:
                                     response = await i.json()
                                     for names in range(len(response)):
                                         names = response[names]
@@ -271,49 +230,37 @@ class Users(commands.Cog):
                                         else:
                                             final_string += f"**{changed_name}**\n"
 
-                            async with aiohttp.ClientSession() as session:
-                                async with session.get(f"https://crafatar.com/renders/body/{uuid}") as c:
-                                    response = await c.read()
-                                    with open("skin.png", "wb") as i:
-                                        i.write(response)
+                            async with aiohttp.ClientSession() as session_3:
+                                async with session_3.get(f"https://crafatar.com/renders/body/{uuid}") as d:
+                                    response = await d.read()
+                                    with open("skin.png", "wb") as f:
+                                        f.write(response)
 
-                                    if c.status == 200:
+                                    if d.status == 200:
                                         directory = os.getcwd()
-                                        embed = discord.Embed(title="**__Name History__**",
-                                                              description=f"{final_string}",
-                                                              color=self.colors.get("pink"))
                                         file = discord.File(fr"{directory}\skin.png", filename="skin.png")
-                                        embed.set_thumbnail(url="attachment://skin.png")
-                                        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}",
-                                                         icon_url=self.bot.user.avatar_url)
-                                        await ctx.send(file=file, embed=embed)
+                                        title = "**__Name History__**"
+                                        description = f"{final_string}"
+                                        color = "pink"
+                                        thumbnail = "attachment://skin.png"
+                                        await ctx.send(file=file, embed=return_embed(self, ctx, title, description,
+                                                                                     color, thumbnail))
 
                                     else:
-                                        embed = discord.Embed(title="__Error__",
-                                                              description="An error occured while fetching user data.",
-                                                              color=self.colors.get("red"))
-                                        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}",
-                                                         icon_url=self.bot.user.avatar_url)
-                                        await ctx.send(embed=embed)
-
+                                        error = "An error occurred while fetching user data"
+                                        await ctx.send(embed=return_error(self, ctx, error))
                         else:
-                            embed = discord.Embed(title="__Error__", description="User not found.",
-                                                  color=self.colors.get("red"))
-                            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}",
-                                             icon_url=self.bot.user.avatar_url)
-                            await ctx.send(embed=embed)
-            except:
-                embed = discord.Embed(title="__Error__", description="An error occured.", color=self.colors.get("red"))
-                embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-                await ctx.send(embed=embed)
+                            error = "User not found"
+                            await ctx.send(embed=return_error(self, ctx, error))
+            except aiohttp.ContentTypeError:
+                error = "Invalid username"
+                await ctx.send(embed=return_error(self, ctx, error))
 
     @commands.command(help="<username>", description="Lookup a minecraft user's skin.")
     async def skin(self, ctx, name=None):
-        timestamp = ctx.message.created_at.strftime(self.time_format)
         if name is None:
-            embed = discord.Embed(title="__Error__", description="No username given.", color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            error = "No username given"
+            await ctx.send(embed=return_error(self, ctx, error))
 
         else:
             try:
@@ -323,36 +270,47 @@ class Users(commands.Cog):
                         if c.status == 200:
                             uuid = response['id']
 
-                            async with aiohttp.ClientSession() as session:
-                                async with session.get(f"https://crafatar.com/renders/body/{uuid}") as c:
-                                    response = await c.read()
-                                    with open("skin.png", "wb") as f:
-                                        f.write(response)
-                                    if c.status == 200:
-                                        directory = os.getcwd()
-                                        embed = discord.Embed(title=f"Player: {name}", color=self.colors.get("pink"))
-                                        file = discord.File(fr"{directory}\skin.png", filename="skin.png")
-                                        embed.set_image(url="attachment://skin.png")
-                                        await ctx.send(file=file, embed=embed)
+                if uuid is not None:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(f"https://crafatar.com/renders/body/{uuid}") as i:
+                            response = await i.read()
+                            with open("skin.png", "wb") as f:
+                                f.write(response)
+                            if i.status == 200:
+                                directory = os.getcwd()
+                                file = discord.File(fr"{directory}\skin.png", filename="skin.png")
+                                title = f"Player: {name}"
+                                image = "attachment://skin.png"
+                                await ctx.send(file=file, embed=return_embed(self, ctx, title,
+                                                                             color="pink", image=image))
+                            else:
+                                error = "An error occurred while fetching user data."
+                                await ctx.send(embed=return_error(self, ctx, error))
+                else:
+                    error = "User not found."
+                    await ctx.send(embed=return_error(self, ctx, error))
 
-                                    else:
-                                        embed = discord.Embed(title="__Error__", description="User not found.",
-                                                              color=self.colors.get("red"))
-                                        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}",
-                                                         icon_url=self.bot.user.avatar_url)
-                                        await ctx.send(embed=embed)
+            except aiohttp.ContentTypeError:
+                error = "Invalid username"
+                await ctx.send(embed=return_error(self, ctx, error))
 
-                        else:
-                            embed = discord.Embed(title="__Error__", description="User not found.",
-                                                  color=self.colors.get("red"))
-                            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}",
-                                             icon_url=self.bot.user.avatar_url)
-                            await ctx.send(embed=embed)
 
-            except:
-                embed = discord.Embed(title="__Error__", description="An error occured.", color=self.colors.get("red"))
-                embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-                await ctx.send(embed=embed)
+def return_embed(self, ctx, title=None, description=None, color=None, thumbnail=None, image=None):
+    """ Function to create and return the embed for the command that calls it."""
+    timestamp = ctx.message.created_at.strftime(self.time_format)
+    embed = discord.Embed(title=title, description=description, color=self.colors.get(color))
+    embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+    embed.set_thumbnail(url=thumbnail) if thumbnail is not None else None
+    embed.set_image(url=image) if image is not None else None
+    return embed
+
+
+def return_error(self, ctx, error):
+    """ Function to create and return the embed for the error."""
+    timestamp = ctx.message.created_at.strftime(self.time_format)
+    embed = discord.Embed(title="__Error__", description=error, color=self.colors.get("red"))
+    embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
+    return embed
 
 
 def get_config():
