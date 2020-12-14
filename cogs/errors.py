@@ -16,11 +16,9 @@ class Errors(commands.Cog):
         self.colors = {"red": 0xff5959, "green": 0x00ff40, "pink": 0xff00ff}
         print(f"{self.__class__.__name__} cog loaded.")
 
-
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         """ Event to catch any errors that are caused when a command is called """
-        timestamp = ctx.message.created_at.strftime(self.time_format)
         config = get_config()
         msg = ctx.message.content.replace(config["prefix"], "").lower()
 
@@ -28,46 +26,34 @@ class Errors(commands.Cog):
             pass
 
         elif isinstance(error, commands.errors.CommandNotFound):
-            embed = discord.Embed(title="**__Command Not Found__**",
-                                  description=f"**Use {config['prefix']}help for the command list.**",
-                                  color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            description = f"**Use {config['prefix']}help for the command list.**"
+            await ctx.send(embed=return_error(self, ctx, title="__Command Not Found__", error=description))
 
         elif isinstance(error, commands.errors.CheckFailure):
-            embed = discord.Embed(title="**__Permission Denied__**",
-                                  description="**You don't have permission to use this command.**",
-                                  color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            description = "**You don't have permission to use this command.**"
+            await ctx.send(embed=return_error(self, ctx, title="__Permission Denied__", error=description))
 
         elif isinstance(error, commands.errors.CommandOnCooldown):
-            embed = discord.Embed(title="**__Permission Denied__**",
-                                  description=f"**This command is on cooldown for another {int(error.retry_after)}s.**",
-                                  color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            description = f"**This command is on cool-down for another {int(error.retry_after)}s.**"
+            await ctx.send(embed=return_error(self, ctx, error=description))
 
         elif isinstance(error, commands.errors.MissingRequiredArgument):
-            embed = Errors.send_error(self, ctx, error)
-            await ctx.send(embed=embed)
+            await ctx.send(embed=return_error(self, ctx, error=str(error)))
 
         elif isinstance(error, commands.errors.BadArgument):
-            embed = send_error(self, ctx, error)
-            await ctx.send(embed=embed)
+            await ctx.send(embed=return_error(self, ctx, error=str(error)))
 
-        elif isinstance(error, commands.errors):
-            embed = Errors.send_error(self, ctx, error)
-            await ctx.send(embed=embed)
+        elif isinstance(error, commands.errors.NoPrivateMessage):
+            await ctx.send(embed=return_error(self, ctx, error=str(error)))
 
         else:
             raise error
 
 
-def send_error(self, ctx, error):
-    """ Function to return the error message based on the instance of error. """
+def return_error(self, ctx, title="__Error__", error=None):
+    """ Function to create and return the embed for the error."""
     timestamp = ctx.message.created_at.strftime(self.time_format)
-    embed = discord.Embed(title="**__Error__**", description=f"**{error}**", color=self.colors.get("red"))
+    embed = discord.Embed(title=title, description=error, color=self.colors.get("red"))
     embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
     return embed
 
