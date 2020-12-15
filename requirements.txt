@@ -1,4 +1,3 @@
 discord.py
-aiohttp
-asyncio
 datetime
+aiohttp==3.6.3
