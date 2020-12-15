@@ -1,3 +1,4 @@
-discord.py
-datetime
+discord.py==1.5.1
+async-timeout==3.0.1
 aiohttp==3.6.3
+datetime==4.3
