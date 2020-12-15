@@ -1,9 +1,6 @@
 """ Help cog which defines the help and reload commands """
-import json
-import discord
 from discord.ext import commands
-
-CONFIG_FILE = "data/config.json"
+import methods
 
 
 class Help(commands.Cog):
@@ -20,9 +17,9 @@ class Help(commands.Cog):
                       description="Shows the commands list and their descriptions.")
     async def help(self, ctx, arg=None):
         """ User command to show a list of available commands """
-        timestamp = ctx.message.created_at.strftime(self.time_format)
-        config = get_config()
-        commands_list = f"*Use **{config['prefix']}help <command>** for help with usage.*\n*Use **{config['prefix']}help 2** to view the second help page.*\n"
+        config = methods.get_config()
+        commands_list = f"*Use **{config['prefix']}help <command>** for help with usage.*\n" \
+                        f"*Use **{config['prefix']}help 2** to view the second help page.*\n"
         commands_list_2 = f"*Use **{config['prefix']}help <command>** for help with usage.*\n"
         bot_commands = []
         for cog in self.bot.cogs.keys():
@@ -33,53 +30,38 @@ class Help(commands.Cog):
                 cog_commands = self.bot.get_cog(cog).get_commands()
                 for command in cog_commands:
                     bot_commands.append(command.name)
-                    commands_list += f"**{config['prefix']}{command.name}** - *{command.description}*\n" if cog in (
-                    "Users", "Tickets") else ""
-                    commands_list_2 += f"**{config['prefix']}{command.name}** - *{command.description}*\n" if cog in (
-                    "Moderation", "Help") else ""
+                    commands_list += f"**{config['prefix']}{command.name}** - *{command.description}*\n" if cog in [
+                        "Users", "Tickets"] else ""
+                    commands_list_2 += f"**{config['prefix']}{command.name}** - *{command.description}*\n" if cog in [
+                        "Moderation", "Help"] else ""
 
         if arg is None or arg == "1":
-            embed = discord.Embed(title="**__Help__**", description=f'**__Commands:__**\n{commands_list}',
-                                  color=self.colors.get("blue"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.author.send(embed=embed)
-
-            embed = discord.Embed(title="**__Help__**", description="Sent Help in DM's.",
-                                  color=self.colors.get("green"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            title = "**__Help Page: 1__**"
+            description = f"**__Commands:__**\n{commands_list}"
+            await ctx.author.send(embed=methods.return_embed(self, ctx, title, description, color="blue"))
+            await ctx.send(embed=return_help(self, ctx))
 
         elif arg == "2":
-            embed = discord.Embed(title="**__Help Page: 2__**", description=f'**__Commands:__**\n{commands_list_2}',
-                                  color=self.colors.get("blue"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.author.send(embed=embed)
+            title = "**__Help Page: 2__**"
+            description = f'**__Commands:__**\n{commands_list_2}'
+            await ctx.author.send(embed=methods.return_embed(self, ctx, title, description, color="blue"))
+            await ctx.send(embed=return_help(self, ctx))
 
         elif arg not in bot_commands:
-            embed = discord.Embed(title="**__Error__**", description='Invalid command, it could be an admin command.',
-                                  color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            description = "Invalid command, it could be an admin command."
+            await ctx.send(embed=methods.return_error(self, ctx, error=description))
 
         else:
-            for cog in self.bot.cogs.keys():
-                cog_commands = self.bot.get_cog(cog).get_commands()
-                for command in cog_commands:
-                    if command.name == arg:
-                        aliases = ", ".join(command.aliases) if command.aliases != [] else "None"
-                        usage = "" if command.help == "" else f"*{command.help}*"
-                        embed = discord.Embed(title="**__Usage__**",
-                                              description=f"**{config['prefix']}{command.name}** {usage}\n\nOther Aliases: **{aliases}**",
-                                              color=self.colors.get("blue"))
-                        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-                        await ctx.send(embed=embed)
+            command, aliases, usage = fetch_commands(self, arg)
+            title = "**__Usage__**"
+            description = f"**{config['prefix']}{command.name}** {usage}\n\nOther Aliases: **{aliases}**"
+            await ctx.send(embed=methods.return_embed(self, ctx, title, description, color="blue"))
 
     @commands.command(help="<command>\n\nDon't include any arguments to show the whole command list.",
                       description="Shows the admin commands list and their descriptions.")
     async def adminhelp(self, ctx, arg=None):
         """ Command to show the commands that require administrator permissions """
-        timestamp = ctx.message.created_at.strftime(self.time_format)
-        config = get_config()
+        config = methods.get_config()
         commands_list = f"*Use **{config['prefix']}adminhelp <command>** for help with usage.*\n"
         bot_commands = []
         for cog in self.bot.cogs.keys():
@@ -91,39 +73,39 @@ class Help(commands.Cog):
                     commands_list += f"**{config['prefix']}{command.name}** - *{command.description}*\n"
 
         if arg is None:
-            embed = discord.Embed(title="**__Admin Help__**", description=f'**__Commands:__**\n{commands_list}',
-                                  color=self.colors.get("blue"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.author.send(embed=embed)
+            title = "**__Admin Help__**"
+            description = f"**__Commands:__**\n{commands_list}"
+            await ctx.author.send(embed=methods.return_embed(self, ctx, title, description, color="blue"))
+            await ctx.send(embed=return_help(self, ctx))
 
         elif arg not in bot_commands:
-            embed = discord.Embed(title="**__Error__**", description='Invalid command, it may not be an admin command.',
-                                  color=self.colors.get("red"))
-            embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-            await ctx.send(embed=embed)
+            description = "Invalid command, it may not be an admin command."
+            await ctx.send(embed=methods.return_error(self, ctx, error=description))
 
         else:
-            for cog in self.bot.cogs.keys():
-                cog_commands = self.bot.get_cog(cog).get_commands()
-                for command in cog_commands:
-                    if command.name == arg:
-                        aliases = ", ".join(command.aliases) if command.aliases != [] else "None"
-                        usage = "" if command.help == "" else f"*{command.help}*"
-                        embed = discord.Embed(title="**__Usage__**",
-                                              description=f"**{config['prefix']}{command.name}** {usage}\n\nOther Aliases: **{aliases}**",
-                                              color=self.colors.get("blue"))
-                        embed.set_footer(text=f"{self.bot.user.name} | {timestamp}", icon_url=self.bot.user.avatar_url)
-                        await ctx.send(embed=embed)
+            command, aliases, usage = fetch_commands(self, arg)
+            title = "**__Usage__**"
+            description = f"**{config['prefix']}{command.name}** {usage}\n\nOther Aliases: **{aliases}**"
+            await ctx.send(embed=methods.return_embed(self, ctx, title, description, color="blue"))
 
 
-def get_config():
-    """ Function to get the config file's data """
-    try:
-        with open(CONFIG_FILE) as i:
-            return json.load(i)
+def return_help(self, ctx):
+    """ Function to respond to user in context of their command """
+    title = "**__Help__**"
+    description = "Sent Help in DM's."
+    embed = methods.return_embed(self, ctx, title, description, color="green")
+    return embed
 
-    except FileNotFoundError as error:
-        print(error)
+
+def fetch_commands(self, arg):
+    """ Function to fetch aliases and usage of a given command """
+    for cog in self.bot.cogs.keys():
+        cog_commands = self.bot.get_cog(cog).get_commands()
+        for command in cog_commands:
+            if command.name == arg:
+                aliases = ", ".join(command.aliases) if command.aliases != [] else "None"
+                usage = "" if command.help == "" else f"*{command.help}*"
+                return command, aliases, usage
 
 
 def setup(bot):
