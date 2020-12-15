@@ -3,16 +3,7 @@ import json
 
 import discord
 from discord.ext import commands
-
-
-def get_config():
-    """ Loads the config data. """
-    try:
-        with open(CONFIG_FILE) as i:
-            return json.load(i)
-
-    except FileNotFoundError as error:
-        print(error)
+import methods
 
 
 def get_prefix(_bot, _message):
@@ -26,12 +17,13 @@ def get_prefix(_bot, _message):
         print(error)
 
 
-bot = commands.Bot(command_prefix=get_prefix, case_insensitive=True, reconnect=True, check="blacklist_check")
+intents = discord.Intents(messages=True, guilds=True, members=True, reactions=True)
+bot = commands.Bot(command_prefix=get_prefix, case_insensitive=True, reconnect=True,
+                   check="blacklist_check", intents=intents)
 bot.remove_command("help")
 CONFIG_FILE = "data/config.json"
 BLACKLISTED_FILE = "data/blacklisted.json"
-data = get_config()
-
+data = methods.get_config()
 cogs = [
     "cogs.events",
     "cogs.errors",
@@ -46,7 +38,7 @@ cogs = [
 @bot.event
 async def on_ready():
     """ Event that is called once bot is up and running, changes status and activity """
-    config = get_config()
+    config = methods.get_config()
     prefix = config["prefix"]
     status = config["playing_status"]
     online_status = config["online_status"]
