@@ -13,7 +13,7 @@ class Help(commands.Cog):
         self.colors = {"red": 0xff5959, "green": 0x00ff40, "pink": 0xff00ff, "blue": 0x0080c0}
         print(f"{self.__class__.__name__} cog loaded.")
 
-    @commands.command(help="<command/page>\n\nDont't provide any arguments to show the 1st help page.",
+    @commands.command(help="<command/page>\n\nDon't provide any arguments to show the 1st help page.",
                       description="Shows the commands list and their descriptions.")
     async def help(self, ctx, arg=None):
         """ User command to show a list of available commands """
