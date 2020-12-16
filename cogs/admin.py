@@ -147,7 +147,7 @@ class Admin(commands.Cog):
             await self.bot.change_presence(status=online_status, activity=activity)
 
             title = "__Status Changed__"
-            description = f"Status changed to: 'Playing {message}'"
+            description = f"Status changed to: 'Listening {message}'"
             await ctx.send(embed=methods.return_embed(self, ctx, title, description, color="green"))
 
             config = methods.get_config()
@@ -166,7 +166,7 @@ class Admin(commands.Cog):
             await self.bot.change_presence(status=online_status, activity=activity)
 
             title = "__Status Changed__"
-            description = f"Status changed to: 'Playing {message}'"
+            description = f"Status changed to: 'Watching {message}'"
             await ctx.send(embed=methods.return_embed(self, ctx, title, description, color="green"))
 
             config = methods.get_config()
