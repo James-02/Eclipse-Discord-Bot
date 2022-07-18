@@ -2,3 +2,5 @@
 .idea
 .git
 __pycache__
+tickets.db
+data/

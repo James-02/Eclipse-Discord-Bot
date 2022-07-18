@@ -235,7 +235,7 @@ class Users(commands.Cog):
 
                                     if d.status == 200:
                                         directory = os.getcwd()
-                                        file = discord.File(fr"{directory}\skin.png", filename="skin.png")
+                                        file = discord.File(fr"{directory}/skin.png", filename="skin.png")
                                         title = "**__Name History__**"
                                         description = f"{final_string}"
                                         color = "pink"
