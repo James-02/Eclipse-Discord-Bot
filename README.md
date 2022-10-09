@@ -1,7 +1,3 @@
-
-
-
-
 # Eclipse Discord Bot
 To run the bot:
 1. Download python 3.6+ and add to PATH (https://www.python.org/downloads/)
@@ -27,3 +23,10 @@ python 3.6+
 - datetime==4.3
 
 If you have any issues please message Jam#0191 on discord.
+
+# Examples
+
+![Screenshot_2](https://user-images.githubusercontent.com/67332910/194765022-7e2d3ca1-8a2b-4eec-a30c-e92f90ae64ab.png)
+![Screenshot_3](https://user-images.githubusercontent.com/67332910/194765226-9c31388d-0cce-418e-adf3-6f856a0b82ba.png)
+![Screenshot_4](https://user-images.githubusercontent.com/67332910/194765781-6447dc7a-026e-43e1-a87e-103fde16cd6e.png)
+
